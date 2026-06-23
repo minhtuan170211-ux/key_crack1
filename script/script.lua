@@ -2,44 +2,21 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 task.wait(math.random())
-local MY_FIXED_KEY = "1"
-local function trim(v)
-    return tostring(v or ""):match("^%s*(.-)%s*$") or ""
+
+-- =======================================================
+-- ĐIỀN KEY CỐ ĐỊNH CỦA BẠN VÀO GIỮA DẤU NHÁY DƯỚI ĐÂY:
+local MY_FIXED_KEY = "2444"
+-- =======================================================
+
+-- Thiết lập môi trường và gán key cố định trực tiếp
+local genv = (type(getgenv) == "function" and getgenv()) or nil
+
+script_key, SCRIPT_KEY = MY_FIXED_KEY, MY_FIXED_KEY
+_G.script_key, _G.SCRIPT_KEY = MY_FIXED_KEY, MY_FIXED_KEY
+if genv then
+    genv.script_key, genv.SCRIPT_KEY = MY_FIXED_KEY, MY_FIXED_KEY
 end
-local function envOf(fn, ...)
-    if type(fn) ~= "function" then
-        return nil
-    end
-    local ok, env = pcall(fn, ...)
-    return ok and type(env) == "table" and env or nil
-end
-local genv = envOf(getgenv)
-local cenv = envOf(getfenv, 1)
-local function pick(...)
-    for _, key in ipairs({...}) do
-        if cenv and cenv[key] ~= nil then
-            return cenv[key]
-        end
-        if rawget(_G, key) ~= nil then
-            return rawget(_G, key)
-        end
-        if genv and genv[key] ~= nil then
-            return genv[key]
-        end
-    end
-end
-local function setKey(key)
-    key = trim(key)
-    if key == "" then
-        return
-    end
-    script_key, SCRIPT_KEY = key, key
-    _G.script_key, _G.SCRIPT_KEY = key, key
-    if genv then
-        genv.script_key, genv.SCRIPT_KEY = key, key
-    end
-end
-setKey(MY_FIXED_KEY)
+
 local routes = {
     [9910245722] = { "Iron Soul", "https://api.luarmor.net/files/v4/loaders/0de1739d889135c1773d384915f4fd2c.lua" },
     [7856269159] = { "Anime Overload", "https://api.luarmor.net/files/v4/loaders/e6153c73e2d96eb2d2d95cc9eb9bd94b.lua" },
@@ -73,11 +50,12 @@ local routes = {
     [8356066619] = { "Anime Squadron", "https://api.luarmor.net/files/v4/loaders/96c0cb77113aab1b03c99efd25e8b0a9.lua"},
     [10200395747] = { "Grow a Garden 2", "https://api.luarmor.net/files/v4/loaders/06c27f35842892f540c47c5b829cde13.lua"},
 }
+
 local route = routes[game.PlaceId] or routes[game.GameId]
 if not route then
     return
 end
-setKey(pick("script_key", "SCRIPT_KEY"))
+
 local scriptId = route[2]:match("/loaders/([%w]+)%.lua")
 if scriptId then
     _G.LUARMOR_SCRIPT_ID, _G.BIGFROOT_LUARMOR_SCRIPT_ID = scriptId, scriptId
@@ -85,6 +63,7 @@ if scriptId then
         genv.LUARMOR_SCRIPT_ID, genv.BIGFROOT_LUARMOR_SCRIPT_ID = scriptId, scriptId
     end
 end
+
 local state = (genv and genv.BigFrootLoaderState) or { loaded = {} }
 if genv then
     genv.BigFrootLoaderState = state
@@ -93,6 +72,7 @@ if state.loaded[route[1]] then
     return
 end
 state.loaded[route[1]] = true
+
 local ok, src = pcall(game.HttpGet, game, route[2])
 if ok and src and pcall(loadstring(src)) then
     return
